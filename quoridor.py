@@ -1,0 +1,1 @@
+"""Quoridor - étape 2"""
