@@ -93,6 +93,7 @@ class Quoridor:
 
         :returns: le nom du gagnant si la partie est terminée; False autrement.
         """
+        pass #test
 
     def placer_mur(self, joueur, position, orientation):
         """
