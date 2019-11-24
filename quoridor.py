@@ -46,6 +46,7 @@ class Quoridor:
         :raises QuoridorError: si la position est invalide (en dehors du damier).
         :raises QuoridorError: si la position est invalide pour l'état actuel du jeu.
         """
+        pass #test
 
     def état_partie(self):
         """
