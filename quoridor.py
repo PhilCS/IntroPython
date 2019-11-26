@@ -49,7 +49,7 @@ class Quoridor:
                 if not 0 <= joueur["murs"] <= 10:
                     raise QuoridorError("Le nombre de murs qu'un joueur peut placer est >10, ou négatif")
 
-                if len(joueur["pos"]) != 2 or not all(1 <= x <= 9 for x in joueur["pos"]):
+                if len(joueur["pos"]) != 2 or any(not 1 <= x <= 9 for x in joueur["pos"]):
                     raise QuoridorError("La position d'un des joueurs est invalide")
 
                 nb_murs += joueur["murs"]
@@ -61,23 +61,33 @@ class Quoridor:
             if not isinstance(murs, dict):
                 raise QuoridorError("L'argument 'murs' n'est pas un dictionnaire")
 
-            for mur_h in murs["horizontaux"]:
+            murs_h, murs_v = murs["horizontaux"], murs["verticaux"]
+
+            for i, mur_h in enumerate(murs_h):
                 if not (1 <= mur_h[0] <= 8 and 2 <= mur_h[1] <= 9):
-                    raise QuoridorError("La position d'un des murs est invalide")
+                    raise QuoridorError("La position d'un des murs horizontaux est invalide")
 
-            for mur_v in murs["verticaux"]:
+                if any(mur_h[1] == mur_h2[1] and mur_h[0] - 1 <= mur_h2[0] <= mur_h[0] + 1
+                       for j, mur_h2 in enumerate(murs_h) if i != j):
+                    raise QuoridorError("Deux des murs horizontaux se chevauchent")
+
+            for i, mur_v in enumerate(murs_v):
                 if not (2 <= mur_v[0] <= 9 and 1 <= mur_v[1] <= 8):
-                    raise QuoridorError("La position d'un des murs est invalide")
+                    raise QuoridorError("La position d'un des murs verticaux est invalide")
 
-            nb_murs += len(murs["horizontaux"]) + len(murs["verticaux"])
+                if any(mur_v[0] == mur_v2[0] and mur_v[1] - 1 <= mur_v2[1] <= mur_v[1] + 1
+                       for j, mur_v2 in enumerate(murs_v) if i != j):
+                    raise QuoridorError("Deux des murs verticaux se chevauchent")
+
+                if any(mur_h == (mur_v[0] - 1, mur_v[1] + 1) for mur_h in murs_h):
+                    raise QuoridorError("Un des murs horizontaux et un des murs verticaux se chevauchent")
+
+            nb_murs += len(murs_h) + len(murs_v)
 
         if nb_murs != 20:
             raise QuoridorError("Le total des murs placés et plaçables n'est pas égal à 20")
 
-        if murs is None:
-            self.etat["murs"] = {"horizontaux": [], "verticaux": []}
-        else:
-            self.etat["murs"] = deepcopy(murs)
+        self.etat["murs"] = {"horizontaux": [], "verticaux": []} if murs is None else deepcopy(murs)
 
     def __str__(self):
         """

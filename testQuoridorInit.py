@@ -3,7 +3,7 @@ import unittest
 from quoridor import *
 
 
-class TestQuoridorInit(unittest.TestCase):
+class TestInit(unittest.TestCase):
     def test_joueurs_iterable(self):
         with self.assertRaises(QuoridorError) as err:
             Quoridor(joueurs=0)
@@ -64,8 +64,8 @@ class TestQuoridorInit(unittest.TestCase):
             ], murs={
                 "horizontaux": [(2, 2), (2, 3), (2, 4), (2, 5), (2, 6),
                                 (2, 7), (2, 8), (2, 9), (4, 2), (4, 3)],
-                "verticaux":   [(3, 2), (3, 4), (3, 6), (3, 8), (5, 2),
-                                (5, 4), (5, 6), (5, 8), (6, 2), (6, 4)]
+                "verticaux": [(2, 2), (2, 4), (2, 6), (2, 8), (4, 2),
+                              (4, 4), (4, 6), (4, 8), (6, 2), (6, 4)]
             })
         self.assertEqual(str(err.exception), "Le total des murs placés et plaçables n'est pas égal à 20")
 
@@ -75,24 +75,66 @@ class TestQuoridorInit(unittest.TestCase):
                 {"nom": "nom2", "murs": 0, "pos": (5, 9)}
             ], murs={
                 "horizontaux": [(2, 2), (2, 3), (2, 4), (2, 5), (2, 6),
-                                (2, 7), (2, 8), (2, 9), (4, 2), (4, 3), (4, 4)],
-                "verticaux":   [(3, 2), (3, 4), (3, 6), (3, 8), (5, 2),
-                                (5, 4), (5, 6), (5, 8), (6, 2), (6, 4)]
+                                (2, 7), (2, 8), (2, 9), (4, 2), (4, 3)],
+                "verticaux": [(2, 2), (2, 4), (2, 6), (2, 8), (4, 2),
+                              (4, 4), (4, 6), (4, 8), (6, 2), (6, 4), (6, 6)]
             })
         self.assertEqual(str(err.exception), "Le total des murs placés et plaçables n'est pas égal à 20")
 
-    def test_pos_mur(self):
+    def test_pos_mur_h(self):
         with self.assertRaises(QuoridorError) as err:
             Quoridor(joueurs=[
-                {"nom": "nom1", "murs": 0, "pos": (5, 1)},
-                {"nom": "nom2", "murs": 0, "pos": (5, 9)}
+                {"nom": "nom1", "murs": 9, "pos": (5, 1)},
+                {"nom": "nom2", "murs": 10, "pos": (5, 9)}
             ], murs={
-                "horizontaux": [(0, 2), (2, 3), (2, 4), (2, 5), (2, 6),
-                                (2, 7), (2, 8), (2, 9), (4, 2), (4, 3)],
-                "verticaux":   [(3, 2), (3, 4), (3, 6), (3, 8), (5, 2),
-                                (5, 4), (5, 6), (5, 8), (6, 2), (6, 4)]
+                "horizontaux": [(0, 2)],
+                "verticaux": []
             })
-        self.assertEqual(str(err.exception), "La position d'un des murs est invalide")
+        self.assertEqual(str(err.exception), "La position d'un des murs horizontaux est invalide")
+
+    def test_chevauchement_murs_h(self):
+        with self.assertRaises(QuoridorError) as err:
+            Quoridor(joueurs=[
+                {"nom": "nom1", "murs": 9, "pos": (5, 1)},
+                {"nom": "nom2", "murs": 9, "pos": (5, 9)}
+            ], murs={
+                "horizontaux": [(2, 2), (3, 2)],
+                "verticaux": []
+            })
+        self.assertEqual(str(err.exception), "Deux des murs horizontaux se chevauchent")
+
+    def test_pos_mur_v(self):
+        with self.assertRaises(QuoridorError) as err:
+            Quoridor(joueurs=[
+                {"nom": "nom1", "murs": 9, "pos": (5, 1)},
+                {"nom": "nom2", "murs": 10, "pos": (5, 9)}
+            ], murs={
+                "horizontaux": [],
+                "verticaux": [(2, 0)]
+            })
+        self.assertEqual(str(err.exception), "La position d'un des murs verticaux est invalide")
+
+    def test_chevauchement_murs_v(self):
+        with self.assertRaises(QuoridorError) as err:
+            Quoridor(joueurs=[
+                {"nom": "nom1", "murs": 9, "pos": (5, 1)},
+                {"nom": "nom2", "murs": 9, "pos": (5, 9)}
+            ], murs={
+                "horizontaux": [],
+                "verticaux": [(2, 2), (2, 3)]
+            })
+        self.assertEqual(str(err.exception), "Deux des murs verticaux se chevauchent")
+
+    def test_chevauchement_murs_hv(self):
+        with self.assertRaises(QuoridorError) as err:
+            Quoridor(joueurs=[
+                {"nom": "nom1", "murs": 9, "pos": (5, 1)},
+                {"nom": "nom2", "murs": 9, "pos": (5, 9)}
+            ], murs={
+                "horizontaux": [(2, 3)],
+                "verticaux": [(3, 2)]
+            })
+        self.assertEqual(str(err.exception), "Un des murs horizontaux et un des murs verticaux se chevauchent")
 
     def test_etat(self):
         partie = Quoridor(joueurs=[
@@ -101,8 +143,8 @@ class TestQuoridorInit(unittest.TestCase):
         ], murs={
             "horizontaux": [(2, 2), (2, 3), (2, 4), (2, 5), (2, 6),
                             (2, 7), (2, 8), (2, 9), (4, 2), (4, 3)],
-            "verticaux":   [(3, 2), (3, 4), (3, 6), (3, 8), (5, 2),
-                            (5, 4), (5, 6), (5, 8), (6, 2), (6, 4)]
+            "verticaux": [(2, 2), (2, 4), (2, 6), (2, 8), (4, 2),
+                          (4, 4), (4, 6), (4, 8), (6, 2), (6, 4)]
         })
         self.assertDictEqual(partie.etat, {
             "joueurs": [
@@ -112,8 +154,8 @@ class TestQuoridorInit(unittest.TestCase):
             "murs": {
                 "horizontaux": [(2, 2), (2, 3), (2, 4), (2, 5), (2, 6),
                                 (2, 7), (2, 8), (2, 9), (4, 2), (4, 3)],
-                "verticaux":   [(3, 2), (3, 4), (3, 6), (3, 8), (5, 2),
-                                (5, 4), (5, 6), (5, 8), (6, 2), (6, 4)]
+                "verticaux": [(2, 2), (2, 4), (2, 6), (2, 8), (4, 2),
+                              (4, 4), (4, 6), (4, 8), (6, 2), (6, 4)]
             }
         })
 
