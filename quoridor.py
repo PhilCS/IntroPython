@@ -96,7 +96,56 @@ class Quoridor:
 
         :returns: la chaîne de caractères de la représentation.
         """
-        pass
+        patron_carres = (" ", ".", " ", " ", " ", ".", " ", " ", " ", ".", " ", " ", " ", ".", " ", " ",
+                         " ", ".", " ", " ", " ", ".", " ", " ", " ", ".", " ", " ", " ", ".", " ", " ",
+                         " ", ".", " ")
+        patron_murs = [" "] * 35
+        plateau = []
+
+        # génération du plateau vierge
+        for i in range(17):
+            if i % 2:
+                plateau.append([*patron_murs])  # shallow copy du patron
+            else:
+                plateau.append([*patron_carres])
+
+        id_joueurs = []
+
+        # plaçage des pions
+        for i, joueur in enumerate(self.etat["joueurs"]):
+            id_joueur = str(i + 1)
+            id_joueurs.append(f'{id_joueur}={joueur["nom"]}')
+            ligne = -2 * joueur["pos"][1] + 1
+            colonne = 4 * joueur["pos"][0] - 3
+            plateau[ligne][colonne] = id_joueur
+
+        patron_mur_h = ("-", "-", "-", "-", "-", "-", "-")
+
+        # plaçage des murs horizontaux
+        for mur_h in self.etat["murs"]["horizontaux"]:
+            ligne = -2 * mur_h[1] + 2
+            colonne = 4 * mur_h[0] - 4
+            plateau[ligne][colonne: colonne + len(patron_mur_h)] = patron_mur_h
+
+        # plaçage des murs verticaux
+        for mur_v in self.etat["murs"]["verticaux"]:
+            ligne = -2 * mur_v[1] + 1
+            colonne = 4 * mur_v[0] - 5
+            for i in range(ligne, ligne - 3, -1):
+                plateau[i][colonne] = "|"
+
+        # ajout des numéros de ligne
+        for i, ligne in enumerate(plateau):
+            num_ligne = " " if i % 2 else 9 - (i + 1) // 2
+            ligne = "".join(ligne)
+            plateau[i] = f'{num_ligne} |{ligne}|'
+
+        # concaténation des morceaux du plateau
+        return "".join(("Légende: ", ", ".join(id_joueurs), "\n",
+                        "   -----------------------------------\n",
+                        "\n".join(plateau), "\n",
+                        "--|-----------------------------------\n",
+                        "  | 1   2   3   4   5   6   7   8   9",))
 
     def déplacer_jeton(self, joueur, position):
         """
