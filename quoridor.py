@@ -182,11 +182,13 @@ class Quoridor:
 
         Les murs actuellement placés sur le damier sont énumérés dans deux listes de
         positions (x, y). Les murs ont toujours une longueur de 2 cases et leur position
-        est relative à leur coin inférieur gauche. Par convention, un mur horizontal se
-        situe entre les lignes y-1 et y, et bloque les colonnes x et x+1. De même, un
-        mur vertical se situe entre les colonnes x-1 et x, et bloque les lignes y et y+1.
+        est relative à leur coin supérieur gauche lorsque horizontal et inférieur droit 
+        lorsque vertical.
+        Par convention, un mur horizontal sensitue entre les lignes y-1 et y, et bloque 
+        les colonnes x et x+1. De même, un mur vertical se situe entre les colonnes x-1
+        et x, et bloque les lignes y et y+1.
         """
-        pass
+        return self.etat
 
     def jouer_coup(self, joueur):
         """
@@ -220,4 +222,38 @@ class Quoridor:
         :raises QuoridorError: si la position est invalide pour cette orientation.
         :raises QuoridorError: si le joueur a déjà placé tous ses murs.
         """
-        pass
+        #joueur invalide
+        if not joueur == 1 and not joueur == 2:
+            raise QuoridorError("numéro de joueur invalide")
+
+        #aucun mur restant
+        if self.etat.get('joueurs')[joueur-1].get('murs') == 0:
+            raise QuoridorError("aucun mur restant")
+
+        #position invalide
+        if orientation == 'horizontal' and ((position[0] < 1 or position[0] > 8) or (position[1] < 2 or position[1] > 9)):
+            raise QuoridorError("le mur horizontal ne peut être placé là")
+        if orientation == 'vertical' and ((position[0] < 2 or position[0] > 9) or (position[1] < 1 or position[1] > 8)):
+            raise QuoridorError("le mur vertical ne peut être placé là")
+
+        #déjà mur à cette position
+        if orientation == 'horizontal':
+            for i in self.etat.get('murs').get('horizontaux'):
+                if (i[0] == position[0] or i[0] == position[0] - 1 or i[0] == position[0] + 1) and i[1] == position[1]:
+                    raise QuoridorError("un mur occupe déjà cette position")
+            for j in self.etat.get('murs').get('verticaux'):
+                if j[0] == position[0] + 1 and j[1] == position[1] - 1:
+                    raise QuoridorError("un mur occupe déjà cette position")
+        if orientation == 'vertical':
+            for i in self.etat.get('murs').get('verticaux'):
+                if i[0] == position[0] and (i[1] == position[1] or i[1] == position[1] - 1 or i[1] == position[1] + 1):
+                    raise QuoridorError("un mur occupe déjà cette position")
+            for j in self.etat.get('murs').get('horizontaux'):
+                if j[0] == position[0] - 1 and j[1] == position[1] + 1:
+                    raise QuoridorError("un mur occupe déjà cette position")
+        
+        #aucune erreur
+        if orientation == 'horizontal':
+            self.etat.get('murs').get('horizontaux').append(position)
+        if orientation == 'vertical':
+            self.etat.get('murs').get('verticaux').append(position)
