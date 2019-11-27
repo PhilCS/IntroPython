@@ -157,7 +157,29 @@ class Quoridor:
         :raises QuoridorError: si la position est invalide (en dehors du damier).
         :raises QuoridorError: si la position est invalide pour l'état actuel du jeu.
         """
-        pass
+        adversaire = self.etat["joueurs"][0]["pos"]
+        pos = self.etat["joueurs"][joueur - 1]["pos"]# joueur -1 = joueur actuel
+        if joueur == 1:
+            adversaire = self.etat["joueurs"][1]["pos"]
+        if (adversaire[0] == position[0]) and (adversaire[1] == position[1]) or (pos[0] == position[0]) and (pos[1] == position[1]):
+            raise QuoridorError("la position est invalide pour l'état actuel du jeu.")#test si c'est la position du joueur actuel ou de l'adversaire
+        if not ((1 <= position[0] <= 9) and (1 <= position[1] <= 9)):
+            raise QuoridorError("La position est invalide (en dehors du damier).")
+        if position in self.etat["murs"]["verticaux"] or position in self.etat["murs"]["horizontaux"]:
+            raise QuoridorError("La position est invalide pour l'état actuel du jeu.")
+        if joueur != 1 and joueur != 2:
+            raise QuoridorError("Le numéro du joueur est autre que 1 ou 2.")
+        if not((abs(position[0] - pos[0]) == 1 and position[1] == pos[1]) or #si on bouge x il faut que y reste le meme , si on bouge x, y doit rester le meme
+            (abs(position[1] - pos[1]) == 1 and position[0] == pos[0])): # si difference des x = 1 ca veut dire qu'on a fait juste un pas, y = 0
+            if (abs(position[0] - adversaire[0]) == 1) and (abs(pos[0] - adversaire[0]) == 1) and (position[1] == adversaire[1]) and (adversaire[1] == pos[1]): #verifie si jouer 1 et 2 on des x différent de 1 et meme y
+                self.etat["joueurs"][joueur - 1 ]["pos"] = position
+            else:
+                if (abs(position[1] - adversaire[1]) == 1) and (abs(pos[1] - adversaire[1]) == 1) and (position[0] == adversaire[0]) and (adversaire[0] == pos[0]): #verifie si jouer 1 et 2 on des x différent de 1 et meme y
+                    self.etat["joueurs"][joueur - 1 ]["pos"] = position
+                else:
+                    raise QuoridorError("La position est invalide pour l'état actuel du jeu.")
+        else:
+            self.etat["joueurs"][joueur - 1 ]["pos"] = position
 
     def état_partie(self):
         """
@@ -208,7 +230,16 @@ class Quoridor:
 
         :returns: le nom du gagnant si la partie est terminée; False autrement.
         """
-        pass
+        robot = self.etat["joueurs"][1]["pos"]
+        joueur = self.etat["joueurs"][0]["pos"]# joueur -1 = joueur actuel
+
+        if joueur[1] == 9:
+            return self.etat["joueurs"][0]["nom"]
+        else:
+            if robot[1] == 1:
+                return self.etat["joueurs"][1]["nom"]
+            else:
+                return False
 
     def placer_mur(self, joueur, position, orientation):
         """
@@ -257,3 +288,9 @@ class Quoridor:
             self.etat.get('murs').get('horizontaux').append(position)
         if orientation == 'vertical':
             self.etat.get('murs').get('verticaux').append(position)
+
+
+if __name__=="__main__":
+
+    jeu = Quoridor(["dapep19", "robot"])
+    print(jeu)
