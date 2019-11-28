@@ -1,6 +1,6 @@
 """Quoridor - étape 2 - module quoridor"""
 from copy import deepcopy
-from graphe import construire_graphe
+from graphe import *
 
 
 class QuoridorError(Exception):
@@ -38,8 +38,8 @@ class Quoridor:
         except TypeError:
             raise QuoridorError("L'argument 'joueurs' n'est pas itérable")
 
-        if len(joueurs) > 2:
-            raise QuoridorError("L'itérable de joueurs en contient plus de deux")
+        if len(joueurs) != 2:
+            raise QuoridorError("Il doit uniquement y avoir 2 joueurs")
 
         nb_murs = 0
         self.etat = {"joueurs": [], "murs": None}
@@ -82,6 +82,17 @@ class Quoridor:
                 if any(mur_h == (mur_v[0] - 1, mur_v[1] + 1) for mur_h in murs_h):
                     raise QuoridorError("Un des murs horizontaux et un des murs verticaux se chevauchent")
 
+            graphe = construire_graphe(
+                [joueur["pos"] for joueur in self.etat["joueurs"]],
+                murs["horizontaux"],
+                murs["verticaux"]
+            )
+
+            for pos_joueur, dest_joueur in ((self.etat["joueurs"][0]["pos"], "B1"),
+                                            (self.etat["joueurs"][1]["pos"], "B2")):
+                if not nx.has_path(graphe, pos_joueur, dest_joueur):
+                    raise QuoridorError("Un des joueurs est emprisonné par des murs")
+
             nb_murs += len(murs_h) + len(murs_v)
 
         if nb_murs != 20:
@@ -96,18 +107,18 @@ class Quoridor:
 
         :returns: la chaîne de caractères de la représentation.
         """
-        patron_carres = (" ", ".", " ", " ", " ", ".", " ", " ", " ", ".", " ", " ", " ", ".", " ", " ",
-                         " ", ".", " ", " ", " ", ".", " ", " ", " ", ".", " ", " ", " ", ".", " ", " ",
-                         " ", ".", " ")
-        patron_murs = [" "] * 35
+        patron_carres = list(" | .   .   .   .   .   .   .   .   . |")
+        patron_murs = list("  |                                   |")
         plateau = []
 
         # génération du plateau vierge
+        num_ligne = 9
         for i in range(17):
             if i % 2:
                 plateau.append([*patron_murs])  # shallow copy du patron
             else:
-                plateau.append([*patron_carres])
+                plateau.append([str(num_ligne)] + patron_carres)
+                num_ligne -= 1
 
         id_joueurs = []
 
@@ -116,36 +127,30 @@ class Quoridor:
             id_joueur = str(i + 1)
             id_joueurs.append(f'{id_joueur}={joueur["nom"]}')
             ligne = -2 * joueur["pos"][1] + 1
-            colonne = 4 * joueur["pos"][0] - 3
+            colonne = 4 * joueur["pos"][0]
             plateau[ligne][colonne] = id_joueur
 
-        patron_mur_h = ("-", "-", "-", "-", "-", "-", "-")
+        patron_mur_h = list("-------")
 
         # plaçage des murs horizontaux
-        for mur_h in self.etat["murs"]["horizontaux"]:
+        for mur_h in self.etat.get("murs")["horizontaux"]:
             ligne = -2 * mur_h[1] + 2
-            colonne = 4 * mur_h[0] - 4
+            colonne = 4 * mur_h[0] - 1
             plateau[ligne][colonne: colonne + len(patron_mur_h)] = patron_mur_h
 
         # plaçage des murs verticaux
-        for mur_v in self.etat["murs"]["verticaux"]:
+        for mur_v in self.etat.get("murs")["verticaux"]:
             ligne = -2 * mur_v[1] + 1
-            colonne = 4 * mur_v[0] - 5
+            colonne = 4 * mur_v[0] - 2
             for i in range(ligne, ligne - 3, -1):
                 plateau[i][colonne] = "|"
 
-        # ajout des numéros de ligne
-        for i, ligne in enumerate(plateau):
-            num_ligne = " " if i % 2 else 9 - (i + 1) // 2
-            ligne = "".join(ligne)
-            plateau[i] = f'{num_ligne} |{ligne}|'
-
         # concaténation des morceaux du plateau
-        return "".join(("Légende: ", ", ".join(id_joueurs), "\n",
-                        "   -----------------------------------\n",
-                        "\n".join(plateau), "\n",
-                        "--|-----------------------------------\n",
-                        "  | 1   2   3   4   5   6   7   8   9",))
+        return "\n".join(["Légende: " + ", ".join(id_joueurs),
+                          "   -----------------------------------",
+                          *["".join(ligne) for ligne in plateau],
+                          "--|-----------------------------------",
+                          "  | 1   2   3   4   5   6   7   8   9"])
 
     def déplacer_jeton(self, joueur, position):
         """
@@ -165,7 +170,7 @@ class Quoridor:
             raise QuoridorError("la position est invalide pour l'état actuel du jeu.")#test si c'est la position du joueur actuel ou de l'adversaire
         if not ((1 <= position[0] <= 9) and (1 <= position[1] <= 9)):
             raise QuoridorError("La position est invalide (en dehors du damier).")
-        if position in self.etat["murs"]["verticaux"] or position in self.etat["murs"]["horizontaux"]:
+        if position in self.etat.get("murs")["verticaux"] or position in self.etat.get("murs")["horizontaux"]:
             raise QuoridorError("La position est invalide pour l'état actuel du jeu.")
         if joueur != 1 and joueur != 2:
             raise QuoridorError("Le numéro du joueur est autre que 1 ou 2.")
@@ -204,13 +209,13 @@ class Quoridor:
 
         Les murs actuellement placés sur le damier sont énumérés dans deux listes de
         positions (x, y). Les murs ont toujours une longueur de 2 cases et leur position
-        est relative à leur coin supérieur gauche lorsque horizontal et inférieur droit 
+        est relative à leur coin supérieur gauche lorsque horizontal et inférieur droit
         lorsque vertical.
-        Par convention, un mur horizontal sensitue entre les lignes y-1 et y, et bloque 
+        Par convention, un mur horizontal sensitue entre les lignes y-1 et y, et bloque
         les colonnes x et x+1. De même, un mur vertical se situe entre les colonnes x-1
         et x, et bloque les lignes y et y+1.
         """
-        return self.etat
+        return deepcopy(self.etat)
 
     def jouer_coup(self, joueur):
         """
@@ -282,7 +287,7 @@ class Quoridor:
             for j in self.etat.get('murs').get('horizontaux'):
                 if j[0] == position[0] - 1 and j[1] == position[1] + 1:
                     raise QuoridorError("un mur occupe déjà cette position")
-        
+
         #aucune erreur
         if orientation == 'horizontal':
             self.etat.get('murs').get('horizontaux').append(position)
@@ -290,7 +295,6 @@ class Quoridor:
             self.etat.get('murs').get('verticaux').append(position)
 
 
-if __name__=="__main__":
-
+if __name__ == "__main__":
     jeu = Quoridor(["dapep19", "robot"])
     print(jeu)

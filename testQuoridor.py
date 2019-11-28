@@ -10,15 +10,15 @@ class TestInit(unittest.TestCase):
             Quoridor(joueurs=0)
         self.assertEqual(str(err.exception), "L'argument 'joueurs' n'est pas itérable")
 
-    def test_trop_joueurs(self):
-        """test trop joueurs"""
+    def test_nb_joueurs(self):
+        """test nb joueurs"""
         with self.assertRaises(QuoridorError) as err:
             Quoridor(joueurs=[
                 {"nom": "henri", "murs": 10, "pos": (5, 1)},
                 {"nom": "robot", "murs": 10, "pos": (5, 9)},
                 {"nom": "jason", "murs": 0, "pos": (5, 5)}
             ])
-        self.assertEqual(str(err.exception), "L'itérable de joueurs en contient plus de deux")
+        self.assertEqual(str(err.exception), "Il doit uniquement y avoir 2 joueurs")
 
     def test_nb_murs_placables(self):
         """test nb murs plaçables"""
@@ -146,6 +146,18 @@ class TestInit(unittest.TestCase):
                 "verticaux": [(3, 2)]
             })
         self.assertEqual(str(err.exception), "Un des murs horizontaux et un des murs verticaux se chevauchent")
+
+    def test_prisonnier(self):
+        """test prisonnier"""
+        with self.assertRaises(QuoridorError) as err:
+            Quoridor(joueurs=[
+                {"nom": "henri", "murs": 8, "pos": (5, 1)},
+                {"nom": "robot", "murs": 8, "pos": (3, 8)}
+            ], murs={
+                "horizontaux": [(2, 8), (2, 9)],
+                "verticaux": [(2, 8), (4, 8)]
+            })
+        self.assertEqual(str(err.exception), "Un des joueurs est emprisonné par des murs")
 
     def test_etat(self):
         """test état"""
