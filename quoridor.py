@@ -227,7 +227,61 @@ class Quoridor:
         :raises QuoridorError: si le numéro du joueur est autre que 1 ou 2.
         :raises QuoridorError: si la partie est déjà terminée.
         """
-        pass
+        if self.partie_terminée():
+            raise QuoridorError("La partie est déjà terminée")
+
+        if joueur != 1 and joueur != 2:
+            raise QuoridorError("Le numéro du joueur est autre que 1 ou 2")
+
+        joueur = int(joueur)
+        adversaire = 1 if joueur == 2 else 2
+
+        pos_joueur = self.etat.get("joueurs")[joueur-1]["pos"]
+        pos_adversaire = self.etat.get("joueurs")[adversaire-1]["pos"]
+
+        graphe = construire_graphe(
+            [pos_joueur, pos_adversaire],
+            self.etat.get("murs")["horizontaux"],
+            self.etat.get("murs")["verticaux"]
+        )
+
+        chemin_joueur = nx.shortest_path(graphe, pos_joueur, f'B{joueur}')
+        chemin_adversaire = nx.shortest_path(graphe, pos_adversaire, f'B{adversaire}')
+        deplacer_joueur = False
+
+        if len(chemin_joueur) <= len(chemin_adversaire):
+            deplacer_joueur = True
+        else:
+            coups_adversaire = list(graphe.successors(pos_adversaire))
+            if len(coups_adversaire) > 1:
+                prochaine_pos_adversaire = chemin_adversaire[1]
+                diff_x = prochaine_pos_adversaire[0] - pos_adversaire[0]
+                diff_y = prochaine_pos_adversaire[1] - pos_adversaire[1]
+
+                if diff_x != 0:  # tentative plaçage mur vertical
+                    mur_v = [prochaine_pos_adversaire[0] - min(diff_x, 0), prochaine_pos_adversaire[1] - min(diff_y, 0)]
+                    try:
+                        self.placer_mur(joueur, tuple(mur_v), "vertical")
+                    except QuoridorError:
+                        mur_v[1] -= 1  # tentative plaçage mur vertical plus bas
+                        try:
+                            self.placer_mur(joueur, tuple(mur_v), "vertical")
+                        except QuoridorError:
+                            deplacer_joueur = True
+
+                else:  # tentative plaçage mur horizontal
+                    mur_h = [prochaine_pos_adversaire[0] - min(diff_x, 0), prochaine_pos_adversaire[1] - min(diff_y, 0)]
+                    try:
+                        self.placer_mur(joueur, tuple(mur_h), "horizontal")
+                    except QuoridorError:
+                        mur_h[0] -= 1  # tentative plaçage mur horizontal plus à gauche
+                        try:
+                            self.placer_mur(joueur, tuple(mur_h), "horizontal")
+                        except QuoridorError:
+                            deplacer_joueur = True
+
+        if deplacer_joueur:
+            self.déplacer_jeton(joueur, chemin_joueur[1])
 
     def partie_terminée(self):
         """
