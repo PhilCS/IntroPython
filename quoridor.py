@@ -162,45 +162,24 @@ class Quoridor:
         :raises QuoridorError: si la position est invalide (en dehors du damier).
         :raises QuoridorError: si la position est invalide pour l'état actuel du jeu.
         """
-        adversaire = self.etat["joueurs"][0]["pos"]
-        pos = self.etat["joueurs"][joueur - 1]["pos"]# joueur -1 = joueur actuel
-        if joueur == 1:
-            adversaire = self.etat["joueurs"][1]["pos"]
-        if (adversaire[0] == position[0]) and (adversaire[1] == position[1]) or (pos[0] == position[0]) and (pos[1] == position[1]):
-            raise QuoridorError("la position est invalide pour l'état actuel du jeu.")#test si c'est la position du joueur actuel ou de l'adversaire
-        if not ((1 <= position[0] <= 9) and (1 <= position[1] <= 9)):
-            raise QuoridorError("La position est invalide (en dehors du damier).")
-
-        diff_x = position[0] - pos[0]
-        diff_y = position[1] - pos[1]
-
-        if diff_x != 0:
-            mur_v_bloquant = (position[0] - min(diff_x, 0), position[1])
-            murs_v_bloquants = [mur_v_bloquant, (mur_v_bloquant[0], mur_v_bloquant[1] - 1)]
-
-            if any(mur_v in murs_v_bloquants for mur_v in self.etat.get("murs")["verticaux"]):
-                raise QuoridorError("Un mur vertical bloque le chemin")
-
-        if diff_y != 0:
-            mur_h_bloquant = (position[0], position[1] - min(diff_y, 0))
-            murs_h_bloquants = [mur_h_bloquant, (mur_h_bloquant[0] - 1, mur_h_bloquant[1])]
-
-            if any(mur_h in murs_h_bloquants for mur_h in self.etat.get("murs")["horizontaux"]):
-                raise QuoridorError("Un mur horizontal bloque le chemin")
-
         if joueur != 1 and joueur != 2:
-            raise QuoridorError("Le numéro du joueur est autre que 1 ou 2.")
-        if not((abs(position[0] - pos[0]) == 1 and position[1] == pos[1]) or #si on bouge x il faut que y reste le meme , si on bouge x, y doit rester le meme
-            (abs(position[1] - pos[1]) == 1 and position[0] == pos[0])): # si difference des x = 1 ca veut dire qu'on a fait juste un pas, y = 0
-            if (abs(position[0] - adversaire[0]) == 1) and (abs(pos[0] - adversaire[0]) == 1) and (position[1] == adversaire[1]) and (adversaire[1] == pos[1]): #verifie si jouer 1 et 2 on des x différent de 1 et meme y
-                self.etat["joueurs"][joueur - 1 ]["pos"] = position
-            else:
-                if (abs(position[1] - adversaire[1]) == 1) and (abs(pos[1] - adversaire[1]) == 1) and (position[0] == adversaire[0]) and (adversaire[0] == pos[0]): #verifie si jouer 1 et 2 on des x différent de 1 et meme y
-                    self.etat["joueurs"][joueur - 1 ]["pos"] = position
-                else:
-                    raise QuoridorError("La position est invalide pour l'état actuel du jeu.")
-        else:
-            self.etat["joueurs"][joueur - 1 ]["pos"] = position
+            raise QuoridorError("Le numéro du joueur est autre que 1 ou 2")
+
+        if not (1 <= position[0] <= 9 and 1 <= position[1] <= 9):
+            raise QuoridorError("La position est invalide (en dehors du damier)")
+
+        graphe = construire_graphe(
+            [joueur["pos"] for joueur in self.etat["joueurs"]],
+            self.etat.get("murs")["horizontaux"],
+            self.etat.get("murs")["verticaux"]
+        )
+
+        dict_joueur = self.etat.get("joueurs")[int(joueur)-1]
+
+        if position not in graphe.successors(dict_joueur["pos"]):
+            raise QuoridorError("La position est invalide pour l'état actuel du jeu")
+
+        dict_joueur["pos"] = position
 
     def état_partie(self):
         """
