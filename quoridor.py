@@ -1,6 +1,6 @@
 """Quoridor - étape 2 - module quoridor"""
-import networkx as nx
 from copy import deepcopy
+import networkx as nx
 from graphe import construire_graphe
 
 
