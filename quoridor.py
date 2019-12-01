@@ -170,8 +170,24 @@ class Quoridor:
             raise QuoridorError("la position est invalide pour l'état actuel du jeu.")#test si c'est la position du joueur actuel ou de l'adversaire
         if not ((1 <= position[0] <= 9) and (1 <= position[1] <= 9)):
             raise QuoridorError("La position est invalide (en dehors du damier).")
-        if position in self.etat.get("murs")["verticaux"] or position in self.etat.get("murs")["horizontaux"]:
-            raise QuoridorError("La position est invalide pour l'état actuel du jeu.")
+
+        diff_x = position[0] - pos[0]
+        diff_y = position[1] - pos[1]
+
+        if diff_x != 0:
+            mur_v_bloquant = (position[0] - min(diff_x, 0), position[1])
+            murs_v_bloquants = [mur_v_bloquant, (mur_v_bloquant[0], mur_v_bloquant[1] - 1)]
+
+            if any(mur_v in murs_v_bloquants for mur_v in self.etat.get("murs")["verticaux"]):
+                raise QuoridorError("Un mur vertical bloque le chemin")
+
+        if diff_y != 0:
+            mur_h_bloquant = (position[0], position[1] - min(diff_y, 0))
+            murs_h_bloquants = [mur_h_bloquant, (mur_h_bloquant[0] - 1, mur_h_bloquant[1])]
+
+            if any(mur_h in murs_h_bloquants for mur_h in self.etat.get("murs")["horizontaux"]):
+                raise QuoridorError("Un mur horizontal bloque le chemin")
+
         if joueur != 1 and joueur != 2:
             raise QuoridorError("Le numéro du joueur est autre que 1 ou 2.")
         if not((abs(position[0] - pos[0]) == 1 and position[1] == pos[1]) or #si on bouge x il faut que y reste le meme , si on bouge x, y doit rester le meme
@@ -326,6 +342,8 @@ class Quoridor:
         if orientation == 'vertical' and ((position[0] < 2 or position[0] > 9) or (position[1] < 1 or position[1] > 8)):
             raise QuoridorError("le mur vertical ne peut être placé là")
 
+        murs_h = murs_v = None
+
         #déjà mur à cette position
         if orientation == 'horizontal':
             for i in self.etat.get('murs').get('horizontaux'):
@@ -334,6 +352,10 @@ class Quoridor:
             for j in self.etat.get('murs').get('verticaux'):
                 if j[0] == position[0] + 1 and j[1] == position[1] - 1:
                     raise QuoridorError("un mur occupe déjà cette position")
+
+            murs_h = [position] + self.etat.get("murs")["horizontaux"]
+            murs_v = self.etat.get("murs")["verticaux"]
+
         if orientation == 'vertical':
             for i in self.etat.get('murs').get('verticaux'):
                 if i[0] == position[0] and (i[1] == position[1] or i[1] == position[1] - 1 or i[1] == position[1] + 1):
@@ -341,6 +363,20 @@ class Quoridor:
             for j in self.etat.get('murs').get('horizontaux'):
                 if j[0] == position[0] - 1 and j[1] == position[1] + 1:
                     raise QuoridorError("un mur occupe déjà cette position")
+
+            murs_h = self.etat.get("murs")["horizontaux"]
+            murs_v = [position] + self.etat.get("murs")["verticaux"]
+
+        pos_joueurs = [joueur["pos"] for joueur in self.etat["joueurs"]]
+
+        graphe = construire_graphe(
+            pos_joueurs,
+            murs_h,
+            murs_v
+        )
+
+        if any(not nx.has_path(graphe, pos_joueur, f'B{i+1}') for i, pos_joueur in enumerate(pos_joueurs)):
+            raise QuoridorError("Un des joueurs serait emprisonné par ce mur")
 
         #aucune erreur
         if orientation == 'horizontal':
