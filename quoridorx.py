@@ -73,6 +73,45 @@ class QuoridorX(Quoridor):
             turtle.forward(longueur_mur)
             turtle.penup()
 
+        # config pions
+
+        offset_pion = taille_case / 2
+        taille_pion = 30
+
+        # dessin pions
+
+        turtle.color("white")
+
+        for i, joueur in enumerate(self.etat["joueurs"]):
+            turtle.setpos(pos_damier(joueur["pos"][0]) + offset_pion,
+                          pos_damier(joueur["pos"][1]) + offset_pion)
+            turtle.dot(taille_pion, "forestgreen" if i == 0 else "firebrick")
+            turtle.setpos(pos_damier(joueur["pos"][0]) + offset_pion,
+                          pos_damier(joueur["pos"][1]))
+            turtle.write(str(i+1), font=("", taille_police), align="center")
+
+        # dessin nombres
+
+        turtle.color("black")
+
+        for i in range(1, nb_rangees+1):
+            turtle.setpos(pos_damier(i) + offset_pion, pos_damier(0) + offset_pion)  # hor
+            turtle.write(str(i), font=("", taille_police), align="center")
+            turtle.setpos(pos_damier(0) + taille_case, pos_damier(i))  # ver
+            turtle.write(str(i), font=("", taille_police), align="center")
+
+        # dessin légende
+
+        id_joueurs = [f'{i+1}={joueur["nom"]}' for i, joueur in enumerate(self.etat["joueurs"])]
+        turtle.setpos(pos_damier(1), pos_damier(10) - marge_case/2)
+        turtle.write("Légende: " + ", ".join(id_joueurs), font=("", 14))
+
+        # plaçage des pions
+
+        for i, joueur in enumerate(self.etat["joueurs"]):
+            id_joueur = str(i + 1)
+            id_joueurs.append(f'{id_joueur}={joueur["nom"]}')
+
         # affichage
 
         turtle.hideturtle()
