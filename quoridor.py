@@ -1,4 +1,4 @@
-"""Quoridor - étape 2 - module quoridor"""
+"""Quoridor - module quoridor"""
 from copy import deepcopy
 import networkx as nx
 
@@ -123,7 +123,7 @@ class Quoridor:
                    for j, mur_v2 in enumerate(murs_v) if i != j):
                 raise QuoridorError("Deux des murs verticaux se chevauchent")
 
-            if any(mur_h == (mur_v[0] - 1, mur_v[1] + 1) for mur_h in murs_h):
+            if any(tuple(mur_h) == (mur_v[0] - 1, mur_v[1] + 1) for mur_h in murs_h):
                 raise QuoridorError("Un des murs horizontaux et un des murs verticaux se "
                                     "chevauchent")
 
@@ -162,6 +162,8 @@ class Quoridor:
 
         nb_murs = 0
         self.etat = {"joueurs": [], "murs": None}
+        self.type_coup = ""
+        self.pos_coup = None
 
         for i, joueur in enumerate(joueurs):
             if isinstance(joueur, dict):
@@ -350,7 +352,7 @@ class Quoridor:
         chemin_adversaire = nx.shortest_path(graphe, pos_adversaire, f'B{adversaire}')
         deplacer_joueur = False
 
-        if len(chemin_joueur) < len(chemin_adversaire) or \
+        if len(chemin_joueur) <= len(chemin_adversaire) or \
                 len(graphe.successors(pos_adversaire)) < 2:
             deplacer_joueur = True
         else:
@@ -362,10 +364,14 @@ class Quoridor:
                 mur_v = [prochaine_pos_adversaire[0] - min(diff_x, 0), prochaine_pos_adversaire[1]]
                 try:
                     self.placer_mur(joueur, tuple(mur_v), "vertical")
+                    self.type_coup = "MV"
+                    self.pos_coup = tuple(mur_v)
                 except QuoridorError:
                     mur_v[1] -= 1  # tentative plaçage mur vertical plus bas
                     try:
                         self.placer_mur(joueur, tuple(mur_v), "vertical")
+                        self.type_coup = "MV"
+                        self.pos_coup = tuple(mur_v)
                     except QuoridorError:
                         deplacer_joueur = True
 
@@ -373,15 +379,21 @@ class Quoridor:
                 mur_h = [prochaine_pos_adversaire[0], prochaine_pos_adversaire[1] - min(diff_y, 0)]
                 try:
                     self.placer_mur(joueur, tuple(mur_h), "horizontal")
+                    self.type_coup = "MH"
+                    self.pos_coup = tuple(mur_h)
                 except QuoridorError:
                     mur_h[0] -= 1  # tentative plaçage mur horizontal plus à gauche
                     try:
                         self.placer_mur(joueur, tuple(mur_h), "horizontal")
+                        self.type_coup = "MH"
+                        self.pos_coup = tuple(mur_h)
                     except QuoridorError:
                         deplacer_joueur = True
 
         if deplacer_joueur:
             self.déplacer_jeton(joueur, chemin_joueur[1])
+            self.type_coup = "D"
+            self.pos_coup = chemin_joueur[1]
 
     def partie_terminée(self):
         """
