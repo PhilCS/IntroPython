@@ -25,9 +25,46 @@ def analyser_commande():
     parser.add_argument("-ax", dest="gui_auto", action="store_true",
                         help="Jouer en mode automatique contre le serveur avec affichage graphique")
 
-    parser.add_argument("idul", help="IDUL du joueur")  #, nargs='?', default="phcas16")
+    parser.add_argument("idul", help="IDUL du joueur")  # , nargs='?', default="phcas16")
 
     return parser.parse_args()
+
+
+def boucle_saisie(id_partie, mode_graphique):
+    """Boucle de saisie."""
+    capture = None
+    titre = "C'est votre tour!"
+    question = "Entrez votre prochain coup sous la forme (D|MH|MV) x y :"
+
+    while not capture:
+        if mode_graphique:
+            entree = turtle.textinput(titre, question)
+            if entree is None:  # bouton Cancel ou X
+                turtle.mainloop()  # pause sur damier
+                raise RuntimeError("Fenêtre fermée par le joueur")
+        else:
+            print(question, end=" ")
+            entree = input()
+
+        capture = re.search(r'^(D|MH|MV)\s+(\d)\s+(\d)$', entree.strip(), re.IGNORECASE)
+
+        if capture:
+            entrees = capture.groups()
+
+            try:
+                return api.jouer_coup(id_partie, entrees[0].upper(),
+                                      (int(entrees[1]), int(entrees[2])))
+            # except StopIteration as gagnant:
+            #    gagnant = str(gagnant)
+            except RuntimeError as message:
+                titre = str(message)
+                capture = None
+                if not mode_graphique:
+                    print(titre)
+        else:
+            titre = "Erreur de syntaxe, veuillez réessayer."
+            if not mode_graphique:
+                print(titre)
 
 
 def main():
@@ -43,8 +80,8 @@ def main():
     gagnant = False
     q = None
 
-    mode_auto = args.console_auto or args.gui_auto or True
-    mode_graphique = args.gui_manuel or args.gui_auto or True
+    mode_auto = args.console_auto or args.gui_auto  # or True
+    mode_graphique = args.gui_manuel or args.gui_auto  # or True
 
     while not gagnant:
         if mode_graphique:
@@ -68,39 +105,7 @@ def main():
         if mode_auto:
             partie = api.jouer_coup(id_partie, q.type_coup.upper(), q.pos_coup)
         else:
-            capture = None
-            titre = "C'est votre tour!"
-            question = "Entrez votre prochain coup sous la forme (D|MH|MV) x y :"
-
-            while not capture:
-                if mode_graphique:
-                    entree = turtle.textinput(titre, question)
-                    if entree is None:  # bouton Cancel ou X
-                        turtle.mainloop()  # pause sur damier
-                        raise RuntimeError("Fenêtre fermée par le joueur")
-                else:
-                    print(question, end=" ")
-                    entree = input()
-
-                capture = re.search(r'^(D|MH|MV)\s+(\d)\s+(\d)$', entree.strip(), re.IGNORECASE)
-
-                if capture:
-                    entrees = capture.groups()
-
-                    try:
-                        partie = api.jouer_coup(id_partie, entrees[0].upper(),
-                                                (int(entrees[1]), int(entrees[2])))
-                    # except StopIteration as gagnant:
-                    #    gagnant = str(gagnant)
-                    except RuntimeError as message:
-                        titre = str(message)
-                        capture = None
-                        if not mode_graphique:
-                            print(titre)
-                else:
-                    titre = "Erreur de syntaxe, veuillez réessayer."
-                    if not mode_graphique:
-                        print(titre)
+            partie = boucle_saisie(id_partie, mode_graphique)
 
     if mode_graphique:
         turtle.bgcolor("forestgreen" if gagnant == partie["joueurs"][0]["nom"] else "firebrick")
