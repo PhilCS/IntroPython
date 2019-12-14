@@ -78,39 +78,39 @@ def main():
 
     id_partie, partie = api.débuter_partie(args.idul)
     gagnant = False
-    q = None
+    q_obj = None
 
     mode_auto = args.console_auto or args.gui_auto  # or True
     mode_graphique = args.gui_manuel or args.gui_auto  # or True
 
     while not gagnant:
         if mode_graphique:
-            q = QuoridorX(partie["joueurs"], partie["murs"])
+            q_obj = QuoridorX(partie["joueurs"], partie["murs"])
         else:
-            q = Quoridor(partie["joueurs"], partie["murs"])
+            q_obj = Quoridor(partie["joueurs"], partie["murs"])
 
-        gagnant = q.partie_terminée()
+        gagnant = q_obj.partie_terminée()
         if gagnant:
             break
 
         if mode_auto:
             time.sleep(0.25)
-            q.jouer_coup(1)
+            q_obj.jouer_coup(1)
 
         if mode_graphique:
-            q.afficher()
+            q_obj.afficher()
         else:
-            print("", q, sep="\n")
+            print("", q_obj, sep="\n")
 
         if mode_auto:
-            partie = api.jouer_coup(id_partie, q.type_coup.upper(), q.pos_coup)
+            partie = api.jouer_coup(id_partie, q_obj.type_coup.upper(), q_obj.pos_coup)
         else:
             partie = boucle_saisie(id_partie, mode_graphique)
 
     if mode_graphique:
         turtle.bgcolor("forestgreen" if gagnant == partie["joueurs"][0]["nom"] else "firebrick")
     else:
-        print("", q, sep="\n")
+        print("", q_obj, sep="\n")
 
     print(f'\n{gagnant} a gagné la partie!\n')
 
