@@ -30,8 +30,11 @@ def analyser_commande():
     return parser.parse_args()
 
 
-def boucle_saisie(id_partie, mode_graphique):
+def jouer_coup(q_obj, id_partie, mode_auto, mode_graphique):
     """Boucle de saisie."""
+    if mode_auto:
+        return api.jouer_coup(id_partie, q_obj.type_coup.upper(), q_obj.pos_coup)
+
     capture = None
     titre = "C'est votre tour!"
     question = "Entrez votre prochain coup sous la forme (D|MH|MV) x y :"
@@ -102,19 +105,15 @@ def main():
         else:
             print("", q_obj, sep="\n")
 
-        if mode_auto:
-            partie = api.jouer_coup(id_partie, q_obj.type_coup.upper(), q_obj.pos_coup)
-        else:
-            partie = boucle_saisie(id_partie, mode_graphique)
+        partie = jouer_coup(q_obj, id_partie, mode_auto, mode_graphique)
 
-    if mode_graphique:
-        turtle.bgcolor("forestgreen" if gagnant == partie["joueurs"][0]["nom"] else "firebrick")
-    else:
+    if not mode_graphique:
         print("", q_obj, sep="\n")
 
     print(f'\n{gagnant} a gagné la partie!\n')
 
     if mode_graphique:
+        turtle.bgcolor("forestgreen" if gagnant == partie["joueurs"][0]["nom"] else "firebrick")
         turtle.mainloop()  # pause sur damier
 
 
