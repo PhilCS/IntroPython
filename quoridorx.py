@@ -4,23 +4,28 @@ from quoridor import Quoridor
 
 
 class QuoridorX(Quoridor):
+    TAILLE_CASE = 30
+    MARGE_CASE = 20
+    NB_RANGEES = 9
+    XY_OFFSET = - (TAILLE_CASE * NB_RANGEES + MARGE_CASE * (NB_RANGEES - 1)) / 2 \
+                - TAILLE_CASE - MARGE_CASE
+    XY_INCR = TAILLE_CASE + MARGE_CASE
+    TAILLE_POLICE = 18
+    LONGUEUR_MUR = TAILLE_CASE * 2.4 + MARGE_CASE
+    RECUL_MUR = TAILLE_CASE * 0.2
+    OFFSET_MUR = MARGE_CASE / 2
+    OFFSET_PION = TAILLE_CASE / 2
+    TAILLE_PION = 30
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.afficher()
 
+    def _pos_damier(self, num_case):
+        return num_case * self.XY_INCR + self.XY_OFFSET
+
     def afficher(self):
         # config damier
-
-        taille_case = 30
-        marge_case = 20
-        nb_rangees = 9
-        xy_offset = - (taille_case * nb_rangees + marge_case * (nb_rangees - 1)) / 2 \
-                    - taille_case - marge_case
-        xy_incr = taille_case + marge_case
-        taille_police = 18
-
-        def pos_damier(num_case):
-            return num_case * xy_incr + xy_offset
 
         turtle.Screen().tracer(0, 0)  # gèle fenêtre
         turtle.clear()
@@ -32,24 +37,20 @@ class QuoridorX(Quoridor):
         turtle.pensize(5)
         turtle.setheading(90)
 
-        for x in range(1, nb_rangees + 1):
-            for y in range(1, nb_rangees + 1):
-                turtle.setpos(pos_damier(x), pos_damier(y))
+        for x in range(1, self.NB_RANGEES + 1):
+            for y in range(1, self.NB_RANGEES + 1):
+                turtle.setpos(self._pos_damier(x), self._pos_damier(y))
                 turtle.pendown()
                 turtle.begin_fill()
 
                 for _ in range(4):
-                    turtle.forward(taille_case)
+                    turtle.forward(self.TAILLE_CASE)
                     turtle.right(90)
 
                 turtle.end_fill()
                 turtle.penup()
 
         # config murs
-
-        longueur_mur = taille_case * 2.4 + marge_case
-        recul_mur = taille_case * 0.2
-        offset_mur = marge_case / 2
 
         turtle.color("black")
 
@@ -58,9 +59,10 @@ class QuoridorX(Quoridor):
         turtle.setheading(0)
 
         for mur_h in self.etat.get("murs")["horizontaux"]:
-            turtle.setpos(pos_damier(mur_h[0]) - recul_mur, pos_damier(mur_h[1]) - offset_mur)
+            turtle.setpos(self._pos_damier(mur_h[0]) - self.RECUL_MUR,
+                          self._pos_damier(mur_h[1]) - self.OFFSET_MUR)
             turtle.pendown()
-            turtle.forward(longueur_mur)
+            turtle.forward(self.LONGUEUR_MUR)
             turtle.penup()
 
         # dessin murs v
@@ -68,42 +70,40 @@ class QuoridorX(Quoridor):
         turtle.setheading(90)
 
         for mur_v in self.etat.get("murs")["verticaux"]:
-            turtle.setpos(pos_damier(mur_v[0]) - offset_mur, pos_damier(mur_v[1]) - recul_mur)
+            turtle.setpos(self._pos_damier(mur_v[0]) - self.OFFSET_MUR,
+                          self._pos_damier(mur_v[1]) - self.RECUL_MUR)
             turtle.pendown()
-            turtle.forward(longueur_mur)
+            turtle.forward(self.LONGUEUR_MUR)
             turtle.penup()
-
-        # config pions
-
-        offset_pion = taille_case / 2
-        taille_pion = 30
 
         # dessin pions
 
         turtle.color("white")
 
         for i, joueur in enumerate(self.etat["joueurs"]):
-            turtle.setpos(pos_damier(joueur["pos"][0]) + offset_pion,
-                          pos_damier(joueur["pos"][1]) + offset_pion)
-            turtle.dot(taille_pion, "forestgreen" if i == 0 else "firebrick")
-            turtle.setpos(pos_damier(joueur["pos"][0]) + offset_pion,
-                          pos_damier(joueur["pos"][1]))
-            turtle.write(str(i+1), font=("", taille_police), align="center")
+            turtle.setpos(self._pos_damier(joueur["pos"][0]) + self.OFFSET_PION,
+                          self._pos_damier(joueur["pos"][1]) + self.OFFSET_PION)
+            turtle.dot(self.TAILLE_PION, "forestgreen" if i == 0 else "firebrick")
+            turtle.setpos(self._pos_damier(joueur["pos"][0]) + self.OFFSET_PION,
+                          self._pos_damier(joueur["pos"][1]))
+            turtle.write(str(i+1), font=("", self.TAILLE_POLICE), align="center")
 
         # dessin nombres
 
         turtle.color("black")
 
-        for i in range(1, nb_rangees+1):
-            turtle.setpos(pos_damier(i) + offset_pion, pos_damier(0) + offset_pion)  # hor
-            turtle.write(str(i), font=("", taille_police), align="center")
-            turtle.setpos(pos_damier(0) + taille_case, pos_damier(i))  # ver
-            turtle.write(str(i), font=("", taille_police), align="center")
+        for i in range(1, self.NB_RANGEES+1):
+            turtle.setpos(self._pos_damier(i) + self.OFFSET_PION,
+                          self._pos_damier(0) + self.OFFSET_PION)  # hor
+            turtle.write(str(i), font=("", self.TAILLE_POLICE), align="center")
+            turtle.setpos(self._pos_damier(0) + self.TAILLE_CASE,
+                          self._pos_damier(i))  # ver
+            turtle.write(str(i), font=("", self.TAILLE_POLICE), align="center")
 
         # dessin légende
 
         id_joueurs = [f'{i+1}={joueur["nom"]}' for i, joueur in enumerate(self.etat["joueurs"])]
-        turtle.setpos(pos_damier(1), pos_damier(10) - marge_case/2)
+        turtle.setpos(self._pos_damier(1), self._pos_damier(10) - self.MARGE_CASE/2)
         turtle.write("Légende: " + ", ".join(id_joueurs), font=("", 14))
 
         # plaçage des pions
