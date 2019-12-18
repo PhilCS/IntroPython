@@ -118,7 +118,16 @@ class QuoridorX(Quoridor):
         # affichage
 
         turtle.hideturtle()
-        turtle.title("QuoridorX")
+
+        gagnant = self.partie_terminée()
+        if gagnant:
+            turtle.title(f'QuoridorX - {gagnant} a gagné la partie!')
+            turtle.bgcolor("forestgreen"
+                           if gagnant == self.etat["joueurs"][0]["nom"] else
+                           "firebrick")
+        else:
+            turtle.title("QuoridorX")
+
         turtle.update()  # dégèle fenêtre
 
 
