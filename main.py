@@ -1,4 +1,5 @@
 """Quoridor - module main"""
+# pylint: disable=no-member
 import argparse
 import re
 import time
@@ -81,34 +82,34 @@ def main():
 
     id_partie, partie = api.débuter_partie(args.idul)
     gagnant = False
-    q_obj = None
+    q = None
 
     mode_auto = args.console_auto or args.gui_auto  # or True
     mode_graphique = args.gui_manuel or args.gui_auto  # or True
 
     while not gagnant:
         if mode_graphique:
-            q_obj = QuoridorX(partie["joueurs"], partie["murs"])
+            q = QuoridorX(partie["joueurs"], partie["murs"])
         else:
-            q_obj = Quoridor(partie["joueurs"], partie["murs"])
+            q = Quoridor(partie["joueurs"], partie["murs"])
 
-        gagnant = q_obj.partie_terminée()
+        gagnant = q.partie_terminée()
         if gagnant:
             break
 
         if mode_auto:
             time.sleep(0.25)
-            q_obj.jouer_coup(1)
+            q.jouer_coup(1)
 
         if mode_graphique:
-            q_obj.afficher()
+            q.afficher()
         else:
-            print("", q_obj, sep="\n")
+            print("", q, sep="\n")
 
-        partie = jouer_coup(q_obj, id_partie, mode_auto, mode_graphique)
+        partie = jouer_coup(q, id_partie, mode_auto, mode_graphique)
 
     if not mode_graphique:
-        print("", q_obj, sep="\n")
+        print("", q, sep="\n")
 
     print(f'\n{gagnant} a gagné la partie!\n')
 

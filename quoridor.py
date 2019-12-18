@@ -336,7 +336,7 @@ class Quoridor:
         if joueur not in (1, 2):
             raise QuoridorError("Le numéro du joueur est invalide")
 
-        joueur = int(joueur)
+        # joueur = int(joueur)
         adversaire = 1 if joueur == 2 else 2
 
         pos_joueur = tuple(self.etat.get("joueurs")[joueur-1]["pos"])

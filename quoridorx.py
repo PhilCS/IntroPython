@@ -1,9 +1,11 @@
 """Quoridor - module quoridorx"""
+# pylint: disable=no-member
 import turtle
 from quoridor import Quoridor
 
 
 class QuoridorX(Quoridor):
+    """Classe QuoridorX"""
     TAILLE_CASE = 30
     MARGE_CASE = 20
     NB_RANGEES = 9
@@ -25,6 +27,7 @@ class QuoridorX(Quoridor):
         return num_case * self.XY_INCR + self.XY_OFFSET
 
     def afficher(self):
+        """Afficher le damier dans une fenêtre Turtle"""
         # config damier
 
         turtle.Screen().tracer(0, 0)  # gèle fenêtre
